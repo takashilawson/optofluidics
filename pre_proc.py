@@ -12,6 +12,8 @@ class Datafile:
 
 	Attributes:
 		file_path representing the file path to the HDF5 file of interest
+            (string)
+        exp_labels_list representing the list of experiment labels (list)
 
     """
 
@@ -38,6 +40,7 @@ class Datafile:
             print('error: the file is not a .h5 file \n')
 
     def list_groups(self):
+
         """ Function to returns the list of measurements in the datafile
 
         Args:
@@ -76,6 +79,16 @@ class Dataset:
             (float)
         timelapse_key representing the timelapse you wish to access (usually 0)
             (float)
+        h5_loc representing the h5 file internal location of the timelapse
+            (string)
+        wavelengths representing the wavelengths of the spectra (array)
+        times representing the elapsed times of the spectra (array)
+        raw_data representing the counts of the spectra (HDF5 object)
+        back_spectra_arr representing the background counts (array)
+        ref_spectra_arr representing the reference counts (array)
+        pre_proc_data representing the background-corrected counts
+            (pd DataFrame)
+        abs_data representing the absorbance values (pd DataFrame)
 
     """
 
@@ -118,8 +131,8 @@ class Dataset:
 			None
 
 		Returns:
-			pd Dataframe: background-corrected data with elapsed times as indices
-                and wavelength as columns
+			pd Dataframe: background-corrected data with elapsed times as
+                indices and wavelength as columns
 
 		"""
 
@@ -237,7 +250,7 @@ class Dataset:
 
 		Args:
 			file_path representing the csv file location to save to without file
-                extention (string)
+                extension (string)
             export_index representing a Boolean on whether to export the times
                 as the first column
             export_header representing a Boolean on whether to export the

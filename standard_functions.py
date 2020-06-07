@@ -292,3 +292,40 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
         cbar.set_label('Absorbance', rotation=270,labelpad=15)
 
     plt.show()
+
+def plot_model(reaction):
+
+    if hasattr(reaction, 'model'):
+        with rc_context(fname=rc_fname):
+            plt.plot(reaction.model["R"],color=OPT[0],label='Radical Cation')
+            plt.legend()
+            for time in reaction.turning_points:
+                plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+            plt.xlabel('Time /s')
+            plt.ylabel('Concentration / $\mu$M')
+            plt.show()
+    else:
+        print('Calculate model first.')
+
+def compare_model(reaction):
+
+        if hasattr(reaction, 'model'):
+            with rc_context(fname=rc_fname):
+                plt.plot(reaction.model["R"],color=OPT[0],label='Model')
+
+                if reaction.state=='drift_corrected':
+                    y = reaction.conc_profile_d
+                    plt.plot(y,color=OPT[1],label='Data')
+                else:
+                    y = reaction.conc_profile
+                    plt.plot(y,color=OPT[1],label='Data')
+                plt.legend()
+                for time in reaction.turning_points:
+                    plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+                plt.xlim(0,max(reaction.dataset.times)+100)
+                plt.ylim(0,max(y.values)+2)
+                plt.xlabel('Time /s')
+                plt.ylabel('Concentration / $\mu$M')
+                plt.show()
+        else:
+            print('Calculate model first.')

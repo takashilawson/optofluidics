@@ -3,18 +3,19 @@ Optofluidics is a Python library for the analysis of spectroscopic data stored i
 
 The HDF5 must contain measurement groups containing a set of timelapses. Each timelapse contains a collection of timestamped spectral data.
 
-Each spectra is expected to have a background spectra and reference spectra defined stored as an attribute.
+Each spectrum is expected to have a background spectrum and reference spectrum defined stored as an attribute.
 
 HDFS File
-- measurement
+- measurement ABC
   - timelapse_0
-    - spectra_0
-    - spectra_1
+    - spectrum_0
+    - spectrum_1
     - ...
   - timelapse_1
-    - spectra_0
-    - spectra_1
+    - spectrum_0
+    - spectrum_1
     - ...
+- measurement XYZ
 
 ## Installation
 This package an be installed by cloning this repo. It will be for installation via PyPi in due course.
