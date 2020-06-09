@@ -7,7 +7,7 @@ Each spectrum is expected to have a background spectrum and reference spectrum d
 
 Modelling functions assume a photoreduction process with carbon dots as the photosensitiser.
 
-Carbon dots are modelled with an error function to describe their activation period.
+Carbon dots are modelled with an error function to describe their delay/activation period.
 
 HDFS File
 - measurement ABC
@@ -35,21 +35,6 @@ Optofluidics defines three object types: Datafiles, Datasets and Reactions.
  - A Dataset is one timelapse containing multiple spectra at different times.
  - A Reaction is a Dataset that has been processed to give concentration profiles.
 
- Model creation expects certain params.
-
- params must consist of
-     {
-     t_erf representing the delay time in Erf model
-     kc representing the complexation rate constant
-     kbr representing the product bleaching rate constant
-     k representing the saturation rate constant in the Erf model
-     kr representing the back-reaction rate constant
-     o representing the standard deviation in the Erf model
-     c0 representing the initial concentration of reactant
-     K representing the equilibrium constant for complexation
-     end representing the total time for the model
-     }
-
 ```python
 from pre_proc import Datafile, Dataset
 from reaction import Reaction
@@ -71,6 +56,17 @@ reaction_1.create_model(params) # returns a Pandas DataFrame with model
 reaction_1.fit_model(params,method) # runs a lmfit fitting routine to optimise the model parameters
 reaction_1.model2csv(file_name, file_path) # saves model to csv file
 ```
+
+Model creation expects certain params (lmfit parameter object).
+- t_erf representing the delay time in the error function model
+- kc representing the complexation rate constant
+- kbr representing the product bleaching rate constant
+- k representing the saturation rate constant in the Erf model
+- kr representing the back-reaction rate constant
+- o representing the standard deviation in the Erf model
+- c0 representing the initial concentration of reactant
+- K representing the equilibrium constant for complexation
+- end representing the total time for the model
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
