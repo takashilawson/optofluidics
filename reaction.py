@@ -1,16 +1,20 @@
 from pre_proc import Datafile, Dataset
-import pandas as pd
+
+from datetime import datetime, timedelta
+from lmfit import minimize, Parameters, fit_report
 import numpy as np
 import math as math
-from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.pyplot import rc_context
+import os
+import pandas as pd
+import pickle
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.interpolate import interp1d
 import scipy.special as scs
-from lmfit import minimize, Parameters, fit_report
+from time import perf_counter
 
 # specify the three colours to use in plots
 OPT=['#347f3a','#36358b','#e47327']
@@ -24,20 +28,21 @@ class Reaction:
             information and for post-processing procedures.
 
 	Attributes:
-		dataset representing a Dataset object specified in pre_proc.py
-        wavelength representing the wavelength for Beer-Lambert Law calculations
-            (float)
+        conc_profile representing the concentration profile (pd DataFrame)
+        conc_profile_d representing the drift-corrected concentration profile
+            (pd DataFrame)
+        cycles representing the number of UV on-off periods (float)
+        dataset representing a Dataset object specified in pre_proc.py
         epsilon representing the absorption coefficient for Beer-Lambert Law
             calculations (float)
+        model representing an initial model (pd DataFrame)
         path_length representing the cm path length for Berr-Lambert Law
             calculations (float)
-        conc_profile representing the concentration profile (pd Series)
-        conc_profile_d representing the drift-corrected concentration profile
-            (pd Series)
+        rates representing the time-dependent rates (pd DataFrame)
         state representing the status of the data (string)
-        cycles representing the number of UV on-off periods (float)
         turning_points representing the times of turning points (list)
-        model representing an initial model (pd DataFrame)
+        wavelength representing the wavelength for Beer-Lambert Law calculations
+            (float)
 
     """
 
@@ -104,7 +109,9 @@ class Reaction:
 
         print('Calculating concentration using range {} nm to {} nm.'.format(low_limit, high_limit))
 
+        # temp stores the absorbance values in the wavelength range
         temp = abs_data.loc[:,low_limit:high_limit]
+        print('Absorbance will be averaged over {} data points'.format((np.array(temp)).shape[1]))
 
         # average Beer-Lambert calculations at each wavelength over the
         # wavelength range
@@ -169,7 +176,7 @@ class Reaction:
                 pass
 
             plt.xlim(0, max(self.dataset.times))
-            plt.ylim(bottom=0)
+            plt.ylim(0, max(self.conc_profile.values)+2)
             plt.axhline(0,color='gray',ls='--')
             plt.xlabel('time / s')
             plt.ylabel('concentration / $\mu$M')
@@ -203,12 +210,14 @@ class Reaction:
             pass
         writer.save()
 
-    def find_turn_points(self, prom, translate=50, plot=False):
+    def find_turn_points(self, first, prom, translate=50, plot=False):
 
         """Function to find turning points in concentration profile
 
 		Args:
-			prom representing the prominence of peaks (float)
+			first representing the first UV on time (first turning point doesn't
+                account for delay time, so this must be manually specified)
+            prom representing the prominence of peaks (float)
             translate representing a shift correction in time for identified
                 peaks (float)
             plot representing a Boolean on whether a plot should be returned
@@ -244,6 +253,8 @@ class Reaction:
         else:
             pass
 
+        indices_all = np.delete(indices_all,0)
+
         if plot==True:
             with rc_context(fname=rc_fname):
                 fig = plt.figure(figsize=(8, 4))
@@ -258,14 +269,16 @@ class Reaction:
         else:
             pass
 
-        times_all=[]
+        times_all = []
         for iloc in indices_all:
             times_all.append(int(self.dataset.times[iloc]))
+
+        times_all = np.insert(times_all, 0, first)
 
         self.turning_points = times_all
         return times_all
 
-    def update_turning_points(times_arr):
+    def update_turn_points(times_arr):
 
         """Function to update turning points array
 
@@ -300,6 +313,12 @@ class Reaction:
 			pd DataFrame
 
 		"""
+
+        if hasattr(self, 'turning_points'):
+            pass
+        else:
+            print("Run find_turn_points or update_turn_points first.")
+
         params = pars.valuesdict()
         t_erf = params['t_erf']
         kc = params['kc']
@@ -354,8 +373,10 @@ class Reaction:
                 uv_bool.append(1)
 
         # define functions for rate constants
+        # plus t_erf here as t_uv is referenced to turning points NOT UV on/off
+        # periods
         def rate_k(time):
-            return uv_bool[time]*(0.5*k*(1+scs.erf((time-t_uv[time]+t_erf)/(np.sqrt(2)*o))))
+            return uv_bool[time]*(0.5*k*(1+scs.erf((t_uv[time]-t_erf)/(np.sqrt(2)*o))))
 
         def rate_kr(time):
             return kr
@@ -395,6 +416,8 @@ class Reaction:
             Rates['kcr'].append(rate_kcr(time))
             Rates['kbr'].append(rate_kbr(time))
 
+        self.rates = pd.DataFrame(Rates, index=t_model)
+
         t_model=[0]
         for i in range(1,end):
             # the concentration values of the prevous time step are read-out and
@@ -423,13 +446,27 @@ class Reaction:
         self.model = pd.DataFrame(Concentrations, index=t_model)
         return pd.DataFrame(Concentrations, index=t_model)
 
-    def export_model(self, file_path, export_index = True, export_header = True):
+    def get_rates(self):
+
+        """Function to return all time-dependent rates
+
+		Args:
+            None
+
+		Returns:
+			pd DataFrame containing the time-dependent rates
+
+		"""
+
+        return self.rates
+
+    def model2csv(self, file_name, file_path, export_index = True, export_header = True):
 
         """Function to export model to a csv file
 
 		Args:
-			file_path representing the csv file location to save to without file
-                extension (string)
+			file_name representing the file name with csv file extension (string)
+            file_path representing the folder to save to (string)
             export_index representing a Boolean on whether to export the times
                 as the first column
             export_header representing a Boolean on whether to export the
@@ -440,7 +477,7 @@ class Reaction:
 
 		"""
 
-        self.model.to_csv(os.path.join(file_path,'.csv'), index = export_index, header = export_header)
+        self.model.to_csv(os.path.join(file_path,file_name), index = export_index, header = export_header)
         print('Model data saved to .csv succesfully. \n')
 
     def residual(self,params):
@@ -480,7 +517,7 @@ class Reaction:
         residual = model_inter1pd-exp_data
         return np.array(residual.values)
 
-    def fit_model(self,params):
+    def fit_model(self,params,meth):
 
         """Function to fit experimental data to the model
 
@@ -502,9 +539,42 @@ class Reaction:
 			lmfit minimise object
 
 		"""
+        t1_start = perf_counter()
+        out = minimize(self.residual, params, method=meth)
+        t1_stop = perf_counter()
 
-        out = minimize(self.residual, params, method='leastsq')
-
-        best_params = out.params
+        print("Elapsed time for fitting:", t1_stop-t1_start,"\n")
         print(fit_report(out))
+        print("\n The model attribute has been updated with these parameters. ")
         return out
+
+    def save(self, file_name, file_path):
+
+        """Function to save Reaction instance
+
+		Args:
+			file_name represents the file name
+            file_path represents the file path
+
+        Returns:
+			None
+
+		"""
+
+        with open('{}\{}.temp'.format(file_path,file_name), 'wb') as f:
+            pickle.dump(self,f)
+
+    def __repr__(self):
+
+        """Function to output the characteristics of the Reaction instance
+
+		Args:
+			None
+
+		Returns:
+			string: characteristics of the Reaction
+
+		"""
+
+        return self.dataset.exp_label
+        return self.state

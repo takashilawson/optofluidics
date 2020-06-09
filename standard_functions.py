@@ -1,13 +1,15 @@
 from pre_proc import Datafile, Dataset
-import pandas as pd
-import numpy as np
+from reaction import Reaction
+
 from datetime import datetime, timedelta
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.pyplot import rc_context
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+import pandas as pd
 
 OPT=['#347f3a','#36358b','#e47327']
 rc_fname='plotting_params'
@@ -27,6 +29,7 @@ def plot_counts(dataset):
     with rc_context(fname=rc_fname):
         for i, time in enumerate(temp):
             plt.plot(temp[time], color = colors[i], linewidth = 0.5)
+
         plt.xlim(400,900)
         plt.ylim(0,dataset.max_counts()*1.05)
         plt.xlabel('wavelength / nm')
@@ -45,6 +48,7 @@ def plot_trace(dataset):
     with rc_context(fname=rc_fname):
         for i, time in enumerate(trace):
             plt.plot(trace[time], color = colors[i], linewidth = 0.5)
+
         plt.xlim(400,900)
         plt.ylim(bottom=0)
         plt.xlabel('wavelength / nm')
@@ -61,6 +65,7 @@ def plot_abs(dataset):
     with rc_context(fname=rc_fname):
         for i, time in enumerate(temp):
             plt.plot(temp[time], color = colors[i], linewidth = 0.5)
+
         plt.xlim(400,900)
         plt.ylim(0,dataset.max_abs()*1.05)
         plt.xlabel('wavelength / nm')
@@ -83,6 +88,7 @@ def wav_counts(dataset,wavelength_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, wav in enumerate(wav_plt):
                 plt.plot(temp.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
+
             plt.legend()
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
@@ -90,6 +96,7 @@ def wav_counts(dataset,wavelength_list,plot=False):
             plt.ylabel('counts')
             plt.title('Spectral Plot \n {}'.format(dataset.exp_label))
             plt.show()
+
     else:
         pass
 
@@ -112,6 +119,7 @@ def wav_trace(dataset,wavelength_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, wav in enumerate(wav_plt):
                 plt.plot(trace.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
+
             plt.legend()
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
@@ -119,6 +127,7 @@ def wav_trace(dataset,wavelength_list,plot=False):
             plt.ylabel('counts')
             plt.title('Referenced Spectral Plot \n {}'.format(dataset.exp_label))
             plt.show()
+
     else:
         pass
 
@@ -140,6 +149,7 @@ def wav_abs(dataset,wavelength_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, wav in enumerate(wav_plt):
                 plt.plot(temp.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
+
             plt.legend()
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
@@ -147,6 +157,7 @@ def wav_abs(dataset,wavelength_list,plot=False):
             plt.ylabel('absorbance')
             plt.title('Absorbance Plot \n {}'.format(dataset.exp_label))
             plt.show()
+
     else:
         pass
 
@@ -168,6 +179,7 @@ def time_counts(dataset,time_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, time in enumerate(time_plt):
                 plt.plot(temp.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
+
             plt.legend()
             plt.xlim(400,900)
             plt.ylim(bottom=0)
@@ -199,6 +211,7 @@ def time_trace(dataset,time_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, time in enumerate(time_plt):
                 plt.plot(trace.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
+
             plt.legend()
             plt.xlim(400,900)
             plt.ylim(bottom=0)
@@ -227,6 +240,7 @@ def time_abs(dataset,time_list,plot=False):
         with rc_context(fname=rc_fname):
             for i, time in enumerate(time_plt):
                 plt.plot(temp.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
+
             plt.legend()
             plt.xlim(400,900)
             plt.ylim(bottom=0)
@@ -240,6 +254,11 @@ def time_abs(dataset,time_list,plot=False):
     return temp.loc[time_plt,:]
 
 def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
+
+    if absorbanceMIN > 0:
+        print('Miniumum absorbance value must be below 0')
+    else:
+        pass
 
     levels = MaxNLocator(nbins=25).tick_values(absorbanceMIN,absorbanceMAX)
     OD_n=int(np.floor((((absorbanceMAX-0)/(absorbanceMAX-absorbanceMIN))*256)))
@@ -261,10 +280,13 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
         cb=main_ax.contourf(dataset.times, dataset.wavelengths, dataset.abs_data.transpose(), levels=levels, cmap=newcmp)
         main_ax.set_ylim(450,750)
         main_ax.set_xlim(0,max(dataset.times))
+
         for time in times:
             main_ax.axvline(time,color='black',linewidth=1,linestyle=':')
+
         for wav in wavs:
             main_ax.axhline(wav,color='black',linewidth=1,linestyle=':')
+
         main_ax.tick_params(labelcolor='none', top=True, bottom=True, left=True, right=True)
 
     # time trace at specific wavelength
@@ -299,11 +321,38 @@ def plot_model(reaction):
         with rc_context(fname=rc_fname):
             plt.plot(reaction.model["R"],color=OPT[0],label='Radical Cation')
             plt.legend()
+
             for time in reaction.turning_points:
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+
+            plt.xlim(0,max(reaction.dataset.times)+100)
+            plt.ylim(0,max(reaction.model["R"].values)+2)
             plt.xlabel('Time /s')
             plt.ylabel('Concentration / $\mu$M')
             plt.show()
+
+    else:
+        print('Calculate model first.')
+
+def plot_rates(reaction):
+
+    if hasattr(reaction, 'model'):
+
+        rates = reaction.rates
+
+        with rc_context(fname=rc_fname):
+            plt.plot(rates)
+
+            for time in reaction.turning_points:
+                plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+
+            plt.xlim(0,max(reaction.dataset.times)+100)
+            plt.ylim(0,max(reaction.rates["R"].values))
+            plt.xlabel('Time /s')
+            plt.ylabel('Rate / $\mu$M$s^{-1}$')
+            plt.legend()
+            plt.show()
+
     else:
         print('Calculate model first.')
 
@@ -319,13 +368,16 @@ def compare_model(reaction):
                 else:
                     y = reaction.conc_profile
                     plt.plot(y,color=OPT[1],label='Data')
-                plt.legend()
+
                 for time in reaction.turning_points:
                     plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+
                 plt.xlim(0,max(reaction.dataset.times)+100)
                 plt.ylim(0,max(y.values)+2)
                 plt.xlabel('Time /s')
                 plt.ylabel('Concentration / $\mu$M')
+                plt.legend()
                 plt.show()
+
         else:
             print('Calculate model first.')

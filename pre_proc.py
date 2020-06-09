@@ -1,9 +1,11 @@
+from datetime import datetime, timedelta
 import h5py
-import pandas as pd
-import os
 import numpy as np
 import math as math
-from datetime import datetime, timedelta
+import os
+import pandas as pd
+import pickle
+from time import perf_counter
 
 class Datafile:
 
@@ -11,9 +13,9 @@ class Datafile:
             processing.
 
 	Attributes:
-		file_path representing the file path to the HDF5 file of interest
-            (string)
         exp_labels_list representing the list of experiment labels (list)
+        file_path representing the file path to the HDF5 file of interest
+            (string)
 
     """
 
@@ -33,11 +35,11 @@ class Datafile:
                 key_list.append(counter)
             self.exp_labels_list = measurement_list
             self.exp_key_list = key_list
-            print('datafile intialised successfully \n')
+            print('Datafile intialised successfully \n')
         else:
             self.exp_labels_list = measurement_list
             self.exp_key_list = key_list
-            print('error: the file is not a .h5 file \n')
+            print('Error: the file is not a .h5 file \n')
 
     def list_groups(self):
 
@@ -74,21 +76,21 @@ class Dataset:
     """ Dataset class for processing spectral timelapses.
 
 	Attributes:
-		datafile representing a Datafile object specified above
+        abs_data representing the absorbance values (pd DataFrame)
+        back_spectra_arr representing the background counts (array)
+        datafile representing a Datafile object specified above
         exp_key representing the measurement you wish to access in the datafile
-            (float)
-        timelapse_key representing the timelapse you wish to access (usually 0)
             (float)
         h5_loc representing the h5 file internal location of the timelapse
             (string)
-        wavelengths representing the wavelengths of the spectra (array)
-        times representing the elapsed times of the spectra (array)
-        raw_data representing the counts of the spectra (HDF5 object)
-        back_spectra_arr representing the background counts (array)
-        ref_spectra_arr representing the reference counts (array)
         pre_proc_data representing the background-corrected counts
             (pd DataFrame)
-        abs_data representing the absorbance values (pd DataFrame)
+        raw_data representing the counts of the spectra (HDF5 object)
+        ref_spectra_arr representing the reference counts (array)
+        timelapse_key representing the timelapse you wish to access (usually 0)
+            (float)
+        times representing the elapsed times of the spectra (array)
+        wavelengths representing the wavelengths of the spectra (array)
 
     """
 
@@ -116,7 +118,7 @@ class Dataset:
         if self.exp_key >= max(self.datafile.exp_key_list):
             pass
         else:
-            print('error: key out of range \n')
+            print('Error: key out of range \n')
 
         hf = h5py.File(self.datafile.file_path, 'r')
         self.raw_data = hf.get(self.h5_loc)
@@ -135,7 +137,7 @@ class Dataset:
                 indices and wavelength as columns
 
 		"""
-
+        t1_start = perf_counter()
         wav_arr_raw = np.array(self.raw_data['spectrum_0'].attrs['wavelengths'])
         self.wavelengths = wav_arr_raw
         self.back_spectra_arr = np.array(self.raw_data['spectrum_0'].attrs['background'])
@@ -155,7 +157,7 @@ class Dataset:
         except ValueError:
             time_ref = datetime.strptime((time_ref.replace('b','')).replace('\'',''),"%Y-%m-%dT%H:%M:%S")
 
-        print('measurement was started at {}, \n normalising times and applying a background correction \n'.format(time_ref))
+        print('Measurement was started at {}, \n normalising times and applying a background correction \n'.format(time_ref))
 
         # applies background correction
         for counter, spectra in enumerate(self.raw_data.keys()):
@@ -169,7 +171,7 @@ class Dataset:
             times_proc.append(deltatime.total_seconds())
 
         self.times = np.array(times_proc)
-        print('measurement contains {} spectra with {} wavelengths \n'.format(len(self.times),len(self.wavelengths)))
+        print('Measurement contains {} spectra with {} wavelengths \n'.format(len(self.times),len(self.wavelengths)))
 
         # data is stored as a pd Dataframe with elapsed times as indices and wavelengths as columns
         pre_proc_data = pd.DataFrame(corr_data, index = self.times, columns = self.wavelengths)
@@ -178,6 +180,10 @@ class Dataset:
         # sort the data by elapsed time
         self.pre_proc_data = pre_proc_data.sort_index(axis=0)
         self.times = np.sort(self.times)
+
+        t1_stop = perf_counter()
+        print("Elapsed time for pre-processing:", t1_stop-t1_start)
+
         return self.pre_proc_data
 
     def max_counts(self):
@@ -194,7 +200,7 @@ class Dataset:
 
         return np.nanmax(self.pre_proc_data)
 
-    def export_pre_proc(self, file_path, export_index = True, export_header = True):
+    def preproc2csv(self, file_path, export_index = True, export_header = True):
 
         """Function to export pre-processed data to a csv file
 
@@ -244,13 +250,13 @@ class Dataset:
 
         return np.nanmax(self.abs_data)
 
-    def export_abs(self, file_path, export_index = True, export_header = True):
+    def abs2csv(self, file_name, file_path, export_index = True, export_header = True):
 
         """Function to export absorbance data to a csv file
 
 		Args:
-			file_path representing the csv file location to save to without file
-                extension (string)
+			file_name representing the file name with file extension (string)
+            file_path representing the folder to save tgo (string)
             export_index representing a Boolean on whether to export the times
                 as the first column
             export_header representing a Boolean on whether to export the
@@ -261,7 +267,7 @@ class Dataset:
 
 		"""
 
-        self.abs_data.to_csv(os.path.join(file_path,'.csv'), index = export_index, header = export_header)
+        self.abs_data.to_csv(os.path.join(file_path,file_name), index = export_index, header = export_header)
         print('Absorbance data saved to .csv succesfully. \n')
 
     def find_nearest_wav(self, wavelength):
@@ -301,3 +307,34 @@ class Dataset:
             return self.times[idx-1]
         else:
             return self.times[idx]
+
+    def save(self, file_name, file_path):
+
+        """Function to save Dataset instance
+
+    	Args:
+    		file_name represents the file name with file extension
+            file_path represents the file path
+
+        Returns:
+    		None
+
+    	"""
+
+        with open('{}\{}.temp'.format(file_path,file_name), 'wb') as f:
+            pickle.dump(self,f)
+
+    def __repr__(self):
+
+        """Function to output the characteristics of the Dataset instance
+
+		Args:
+			None
+
+		Returns:
+			string: characteristics of the Dataset
+
+		"""
+
+        return self.datafile.file_path
+        return self.exp_label
