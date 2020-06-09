@@ -22,7 +22,7 @@ HDFS File
 - measurement XYZ
 
 ## Installation
-This package an be installed by cloning this repo. It will be available for installation via PyPi in due course.
+This package can be installed by cloning this repo. It will be available for installation via PyPi in due course.
 
 ```bash
 pip install optofluidics
