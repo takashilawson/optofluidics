@@ -5,11 +5,9 @@ The HDF5 must contain measurement groups containing a set of timelapses. Each ti
 
 Each spectrum is expected to have a background spectrum and reference spectrum defined stored as an attribute.
 
-Modelling functions assume a photoreduction process with carbon dots as the photosensitiser.
+Modelling functions assume a methyl viologen photoreduction process with carbon dots as the photosensitiser and EDTA as the sacrificial electron donor. Carbon dots are modelled with an error function to describe their delay/activation period. The bleaching of the photoreduced methyl viologen radical, and complexation of methyl viologen with EDTA, are both accounted for in the model.
 
-Carbon dots are modelled with an error function to describe their delay/activation period.
-
-HDFS File
+HDF5 File Structure
 - measurement ABC
   - timelapse_0
     - spectrum_0
