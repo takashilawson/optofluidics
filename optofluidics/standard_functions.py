@@ -17,7 +17,7 @@ OPT=['#347f3a','#36358b','#e47327']
 
 # specify matplotlib configuration file name
 plot_config_file = 'plotting_params.txt'
-dir = os.path.abspath(path.dirname(__file__))
+dir = os.path.abspath(os.path.dirname(__file__))
 rc_fname=os.path.join(dir, plot_config_file)
 
 def produce_colour_arr(arr):
@@ -506,7 +506,7 @@ def plot_rates(reaction):
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
 
             plt.xlim(0,max(reaction.dataset.times)+100)
-            plt.ylim(0,max(reaction.rates["k(t)"].values))
+            plt.ylim(bottom=0)
             plt.xlabel('Time /s')
             plt.ylabel('Rate / $\mu$M$s^{-1}$')
             plt.legend()
@@ -527,11 +527,12 @@ def compare_model(reaction):
 
 	"""
     # create 1um error bars
-    error = np.ones(len(reaction.dataset.times))
+    error = np.ones(len(reaction.model.index))
 
     if hasattr(reaction, 'model'):
         with rc_context(fname=rc_fname):
-            plt.plot(reaction.model["R"],color=tomato,label='Model')
+            mod = reaction.model["R"]
+            plt.plot(mod, color='tomato',label='Model')
 
             if reaction.state=='drift_corrected':
                 y = reaction.conc_profile_d
@@ -539,7 +540,7 @@ def compare_model(reaction):
                 y = reaction.conc_profile
 
             plt.plot(y,color=OPT[0],label='Data')
-            plt.fill_between(reaction.dataset.times,y.values - error, y.values + error,color='tomato',alpha=0.3,label='$\pm 1\mu$M interval')
+            plt.fill_between(reaction.model.index, mod.values - error, mod.values + error, color='tomato', alpha=0.3, label='$\pm 1\mu$M interval')
 
             for time in reaction.turning_points:
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
