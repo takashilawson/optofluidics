@@ -115,7 +115,7 @@ class Dataset:
         self.h5_loc = r'/{}/timelapse_{}'.format(self.exp_label, str(self.timelapse_key))
 
         # validation on whether the specified key exists in the datafile
-        if self.exp_key >= max(self.datafile.exp_key_list):
+        if self.exp_key <= max(self.datafile.exp_key_list):
             pass
         else:
             print('Error: key out of range \n')

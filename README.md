@@ -20,10 +20,10 @@ HDF5 File Structure
 - measurement XYZ
 
 ## Installation
-This package can be installed by cloning this repo. It will be available for installation via PyPi in due course.
+This package can be installed using pip.
 
 ```bash
-pip install optofluidics
+pip install --index-url https://test.pypi.org/simple/ optofluidics
 ```
 
 ## Usage
@@ -34,19 +34,17 @@ Optofluidics defines three object types: Datafiles, Datasets and Reactions.
  - A Reaction is a Dataset that has been processed to give concentration profiles.
 
 ```python
-from pre_proc import Datafile, Dataset
-from reaction import Reaction
-from standard_functions import *
+import optofluidics as of
 from lmfit import Parameters
 
-datafile_1=Datafile('file_path') # loads the datafile
+datafile_1=of.Datafile('file_path') # loads the datafile
 datafile_1.list_groups() # returns a list of measurements in the datafile
 
-dataset_1=Dataset(datafile_1, group_key, timelapse_key) # loads a specific dataset
+dataset_1=of.Dataset(datafile_1, group_key, timelapse_key) # loads a specific dataset
 dataset_1.pre_process() # returns a Pandas DataFrame with background-correction
 dataset_1.calculate_abs() # returns a Pandas DataFrame with absorbances (calculated from reference spectra)
 
-reaction_1=Reaction(dataset_1,wav_centre,epsilon,path_length) # initialises concentration profile
+reaction_1=of.Reaction(dataset_1,wav_centre,epsilon,path_length) # initialises concentration profile
 reaction_1.calculate_conc(wav_range) # calculates concentration using absorbance values for wav_centre +- wav_range/2
 reaction_1.linear_drift(times_arr) # applies a linear drift correction by fitting to nil absorption points specified in times_arr
 reaction_1.find_turn_points(first_point, prominence) # finds turning points (except the first one which you must specify)

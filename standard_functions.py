@@ -347,7 +347,7 @@ def plot_rates(reaction):
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
 
             plt.xlim(0,max(reaction.dataset.times)+100)
-            plt.ylim(0,max(reaction.rates["R"].values))
+            plt.ylim(0,max(reaction.rates["k(t)"].values))
             plt.xlabel('Time /s')
             plt.ylabel('Rate / $\mu$M$s^{-1}$')
             plt.legend()
