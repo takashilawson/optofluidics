@@ -1,5 +1,5 @@
-from pre_proc import Datafile, Dataset
-from reaction import Reaction
+from .pre_proc import Datafile, Dataset
+from .reaction import Reaction
 
 from datetime import datetime, timedelta
 import numpy as np
@@ -9,18 +9,47 @@ from matplotlib.pyplot import rc_context
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+import os
 import pandas as pd
 
+# specify three colours to use in plots
 OPT=['#347f3a','#36358b','#e47327']
-rc_fname='plotting_params'
+
+# specify matplotlib configuration file name
+plot_config_file = 'plotting_params.txt'
+dir = os.path.abspath(path.dirname(__file__))
+rc_fname=os.path.join(dir, plot_config_file)
 
 def produce_colour_arr(arr):
 
+    """Function to produce a corresponding colour array for a dataset.
+
+	Args:
+		arr representing the data array you want to produce a colour array for
+
+	Returns:
+		array representing the colour array
+
+	"""
+
     evenly_spaced_interval = np.linspace(0, 1, len(arr))
+
+    #cividis colour map used for plotting
     colors = [cm.cividis(x) for x in evenly_spaced_interval]
+
     return colors
 
 def plot_counts(dataset):
+
+    """Function to plot background-corrected counts at all times
+
+	Args:
+		dataset representing the Dataset object
+
+	Returns:
+		none
+
+	"""
 
     temp = dataset.pre_proc_data
     temp = temp.transpose()
@@ -38,6 +67,16 @@ def plot_counts(dataset):
         plt.show()
 
 def plot_trace(dataset):
+
+    """Function to plot referenced counts at all times
+
+	Args:
+		dataset representing the Dataset object
+
+	Returns:
+		none
+
+	"""
 
     temp = dataset.pre_proc_data
     trace = temp.div(dataset.ref_spectra_arr)
@@ -58,6 +97,16 @@ def plot_trace(dataset):
 
 def plot_abs(dataset):
 
+    """Function to plot absorbance at all times
+
+	Args:
+		dataset representing the Dataset object
+
+	Returns:
+		none
+
+	"""
+
     temp = dataset.abs_data
     temp = temp.transpose()
     colors = produce_colour_arr(dataset.times)
@@ -75,13 +124,26 @@ def plot_abs(dataset):
 
 def wav_counts(dataset,wavelength_list,plot=False):
 
+    """Function to return background-corrected counts for specified wavelengths
+        over time
+
+	Args:
+		dataset representing the Dataset object
+        wavelength_list representing a list of wavelengths (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with background-corrected counts at each wavelength
+
+	"""
+
     temp = dataset.pre_proc_data
     wav_plt = []
 
     for wavelength in wavelength_list:
         nearest_wav = dataset.find_nearest_wav(wavelength)
         wav_plt.append(nearest_wav)
-        print('Will plot {} nm in dataset'.format(np.round(nearest_wav,2)))
+        print('Will return {} nm in dataset'.format(np.round(nearest_wav,2)))
 
     if plot==True:
         colors = produce_colour_arr(wav_plt)
@@ -104,6 +166,19 @@ def wav_counts(dataset,wavelength_list,plot=False):
 
 def wav_trace(dataset,wavelength_list,plot=False):
 
+    """Function to return referenced counts for specified wavelengths
+        over time
+
+	Args:
+		dataset representing the Dataset object
+        wavelength_list representing a list of wavelengths (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with referenced counts at each wavelength
+
+	"""
+
     temp = dataset.pre_proc_data
     trace = temp.div(dataset.ref_spectra_arr)
 
@@ -112,7 +187,7 @@ def wav_trace(dataset,wavelength_list,plot=False):
     for wavelength in wavelength_list:
         nearest_wav = dataset.find_nearest_wav(wavelength)
         wav_plt.append(nearest_wav)
-        print('Will plot {} nm in dataset'.format(np.round(nearest_wav,2)))
+        print('Will return {} nm in dataset'.format(np.round(nearest_wav,2)))
 
     if plot==True:
         colors = produce_colour_arr(wav_plt)
@@ -135,13 +210,25 @@ def wav_trace(dataset,wavelength_list,plot=False):
 
 def wav_abs(dataset,wavelength_list,plot=False):
 
+    """Function to return absorbance for specified wavelengths over time
+
+	Args:
+		dataset representing the Dataset object
+        wavelength_list representing a list of wavelengths (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with absorbance at each wavelength
+
+	"""
+
     temp=dataset.abs_data
     wav_plt = []
 
     for wavelength in wavelength_list:
         nearest_wav = dataset.find_nearest_wav(wavelength)
         wav_plt.append(nearest_wav)
-        print('Will plot {} nm in dataset'.format(np.round(nearest_wav,2)))
+        print('Will return {} nm in dataset'.format(np.round(nearest_wav,2)))
 
     if plot==True:
         colors = produce_colour_arr(wav_plt)
@@ -164,6 +251,18 @@ def wav_abs(dataset,wavelength_list,plot=False):
     return temp.loc[:,wav_plt]
 
 def time_counts(dataset,time_list,plot=False):
+
+    """Function to return background-corrected spectra at specified times
+
+	Args:
+		dataset representing the Dataset object
+        time_list representing a list of times (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with background-corrected spectra at each time
+
+	"""
 
     temp=dataset.pre_proc_data
     time_plt = []
@@ -194,6 +293,18 @@ def time_counts(dataset,time_list,plot=False):
     return temp.loc[time_plt,:]
 
 def time_trace(dataset,time_list,plot=False):
+
+    """Function to return referenced spectra at specified times
+
+	Args:
+		dataset representing the Dataset object
+        time_list representing a list of times (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with referenced spectra at each time
+
+	"""
 
     temp=dataset.pre_proc_data
     trace = temp.div(dataset.ref_spectra_arr)
@@ -226,6 +337,18 @@ def time_trace(dataset,time_list,plot=False):
 
 def time_abs(dataset,time_list,plot=False):
 
+    """Function to return absorbance spectra at specified times
+
+	Args:
+		dataset representing the Dataset object
+        time_list representing a list of times (list)
+        plot representing a Boolean on whether to create a plot (Boolean)
+
+	Returns:
+		pd DataFrame with absorbance spectra at each time
+
+	"""
+
     temp=dataset.abs_data
     time_plt = []
 
@@ -255,11 +378,27 @@ def time_abs(dataset,time_list,plot=False):
 
 def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
 
+    """Function to plot an absorbance colourmap
+
+	Args:
+		dataset representing the Dataset object
+        times representing a list of times (list)
+        wavs representing a list of wavelengths (list)
+        absorbanceMIN representing the minimum on the abs scale (float)
+        absorbanceMAX representing the maximum on the abs scale (float)
+
+	Returns:
+		None
+
+	"""
+
+    # validation to ensure the colour map creation returns no errors
     if absorbanceMIN > 0:
         print('Miniumum absorbance value must be below 0')
     else:
         pass
 
+    # create a colour map that is blue for negative and red for positive
     levels = MaxNLocator(nbins=25).tick_values(absorbanceMIN,absorbanceMAX)
     OD_n=int(np.floor((((absorbanceMAX-0)/(absorbanceMAX-absorbanceMIN))*256)))
     OD_p=256-OD_n
@@ -317,6 +456,16 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
 
 def plot_model(reaction):
 
+    """Function to plot the modelled concentration profile
+
+	Args:
+		reaction representing a Reaction object
+
+	Returns:
+		None
+
+	"""
+
     if hasattr(reaction, 'model'):
         with rc_context(fname=rc_fname):
             plt.plot(reaction.model["R"],color=OPT[0],label='Radical Cation')
@@ -335,6 +484,16 @@ def plot_model(reaction):
         print('Calculate model first.')
 
 def plot_rates(reaction):
+
+    """Function to plot k(t) as a function of time
+
+	Args:
+		reaction representing a Reaction object
+
+	Returns:
+		None
+
+	"""
 
     if hasattr(reaction, 'model'):
 
@@ -358,26 +517,39 @@ def plot_rates(reaction):
 
 def compare_model(reaction):
 
-        if hasattr(reaction, 'model'):
-            with rc_context(fname=rc_fname):
-                plt.plot(reaction.model["R"],color=OPT[0],label='Model')
+    """Function to plot both the experimental data and model side-by-side
 
-                if reaction.state=='drift_corrected':
-                    y = reaction.conc_profile_d
-                    plt.plot(y,color=OPT[1],label='Data')
-                else:
-                    y = reaction.conc_profile
-                    plt.plot(y,color=OPT[1],label='Data')
+	Args:
+		reaction representing a Reaction object
 
-                for time in reaction.turning_points:
-                    plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+	Returns:
+		None
 
-                plt.xlim(0,max(reaction.dataset.times)+100)
-                plt.ylim(0,max(y.values)+2)
-                plt.xlabel('Time /s')
-                plt.ylabel('Concentration / $\mu$M')
-                plt.legend()
-                plt.show()
+	"""
+    # create 1um error bars
+    error = np.ones(len(reaction.dataset.times))
 
-        else:
-            print('Calculate model first.')
+    if hasattr(reaction, 'model'):
+        with rc_context(fname=rc_fname):
+            plt.plot(reaction.model["R"],color=tomato,label='Model')
+
+            if reaction.state=='drift_corrected':
+                y = reaction.conc_profile_d
+            else:
+                y = reaction.conc_profile
+
+            plt.plot(y,color=OPT[0],label='Data')
+            plt.fill_between(reaction.dataset.times,y.values - error, y.values + error,color='tomato',alpha=0.3,label='$\pm 1\mu$M interval')
+
+            for time in reaction.turning_points:
+                plt.axvline(time,color='grey',linestyle='--',linewidth='1')
+
+            plt.xlim(0,max(reaction.dataset.times)+100)
+            plt.ylim(0,max(y.values)+2)
+            plt.xlabel('Time /s')
+            plt.ylabel('Concentration / $\mu$M')
+            plt.legend()
+            plt.show()
+
+    else:
+        print('Calculate model first.')

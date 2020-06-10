@@ -1,4 +1,4 @@
-from pre_proc import Datafile, Dataset
+from .pre_proc import Datafile, Dataset
 
 from datetime import datetime, timedelta
 from lmfit import minimize, Parameters, fit_report
@@ -20,7 +20,9 @@ from time import perf_counter
 OPT=['#347f3a','#36358b','#e47327']
 
 # specify a rc_file which contains plotting parameters
-rc_fname='plotting_params'
+plot_config_file = 'plotting_params.txt'
+dir = os.path.abspath(path.dirname(__file__))
+rc_fname=os.path.join(dir, plot_config_file)
 
 class Reaction:
 
