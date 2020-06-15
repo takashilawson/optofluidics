@@ -141,8 +141,6 @@ class Dataset:
         wav_arr_raw = np.array(self.raw_data['spectrum_0'].attrs['wavelengths'])
         self.wavelengths = wav_arr_raw
         self.back_spectra_arr = np.array(self.raw_data['spectrum_0'].attrs['background'])
-        ref_spectra_raw = np.array(self.raw_data['spectrum_0'].attrs['reference'])
-        self.ref_spectra_arr = np.subtract(ref_spectra_raw,self.back_spectra_arr)
 
         corr_data = []
         times_proc = []
@@ -221,7 +219,7 @@ class Dataset:
 
     def calculate_abs(self):
 
-        """Function to calculate absorbances
+        """Function to extract reference spectrum and calculate absorbances
 
 		Args:
 			None
@@ -231,7 +229,8 @@ class Dataset:
                 wavelength as columns
 
 		"""
-
+        ref_spectra_raw = np.array(self.raw_data['spectrum_0'].attrs['reference'])
+        self.ref_spectra_arr = np.subtract(ref_spectra_raw,self.back_spectra_arr)
         abs=-np.log10(self.pre_proc_data.div(self.ref_spectra_arr))
         self.abs_data=abs
         return self.abs_data

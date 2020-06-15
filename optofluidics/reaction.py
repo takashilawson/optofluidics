@@ -385,17 +385,21 @@ class Reaction:
 
         def rate_kc(time):
             # need to equilibrate complexation at start, 0.1 returns no errors.
-            if time < 60:
+            if time < 60 and K !=0:
                 return 0.1
-            else:
+            elif time >= 60 and K !=0:
                 return kc
+            else:
+                return 0
 
         def rate_kcr(time):
             # need to equilibrate complexation at start, 0.1 returns no errors.
-            if time < 60:
+            if time < 60 and K != 0:
                 return 0.1*(1/K)
-            else:
+            elif time >= 60 and K != 0:
                 return rate_kc(time)*(1/K)
+            else:
+                return 0
 
         def rate_kbr(time):
             return uv_bool[time]*kbr
@@ -414,9 +418,9 @@ class Reaction:
         for time in t_model:
             Rates['k(t)'].append(rate_k(time))
             Rates['kr'].append(rate_kr(time))
-            Rates['kc'].append(rate_kc(time))
-            Rates['kcr'].append(rate_kcr(time))
             Rates['kbr'].append(rate_kbr(time))
+            Rates['kcr'].append(rate_kcr(time))
+            Rates['kc'].append(rate_kc(time))
 
         self.rates = pd.DataFrame(Rates, index=t_model)
 
@@ -499,8 +503,10 @@ class Reaction:
                 K representing the equilibrium constant for complexation
                 end representing the total time for the model
                 }
+            complex_bool representing a Boolean on whether to account for
+                complexation
 
-		Returns:
+        Returns:
 			pd Series representing the residuals
 
 		"""
