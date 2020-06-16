@@ -89,7 +89,7 @@ def plot_trace(dataset):
             plt.plot(trace[time], color = colors[i], linewidth = 0.5)
 
         plt.xlim(400,900)
-        plt.ylim(bottom=0)
+        plt.ylim(0,2)
         plt.xlabel('wavelength / nm')
         plt.ylabel('counts')
         plt.title('Referenced Spectral Plot \n {}'.format(dataset.exp_label))
@@ -116,7 +116,7 @@ def plot_abs(dataset):
             plt.plot(temp[time], color = colors[i], linewidth = 0.5)
 
         plt.xlim(400,900)
-        plt.ylim(0,dataset.max_abs()*1.05)
+        plt.ylim(-0.5,2)
         plt.xlabel('wavelength / nm')
         plt.ylabel('absorbance')
         plt.title('Absorbance Plot \n {}'.format(dataset.exp_label))
@@ -151,7 +151,7 @@ def wav_counts(dataset,wavelength_list,plot=False):
             for i, wav in enumerate(wav_plt):
                 plt.plot(temp.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
             plt.xlabel('time / s')
@@ -195,7 +195,7 @@ def wav_trace(dataset,wavelength_list,plot=False):
             for i, wav in enumerate(wav_plt):
                 plt.plot(trace.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
             plt.xlabel('wavelength / nm')
@@ -237,7 +237,7 @@ def wav_abs(dataset,wavelength_list,plot=False):
             for i, wav in enumerate(wav_plt):
                 plt.plot(temp.loc[:,wav],color=colors[i],label='{} nm'.format(round(wav)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(0,max(dataset.times))
             plt.ylim(bottom=0)
             plt.xlabel('time / s')
@@ -279,7 +279,7 @@ def time_counts(dataset,time_list,plot=False):
             for i, time in enumerate(time_plt):
                 plt.plot(temp.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(400,900)
             plt.ylim(bottom=0)
             plt.xlabel('wavelength / nm')
@@ -323,7 +323,7 @@ def time_trace(dataset,time_list,plot=False):
             for i, time in enumerate(time_plt):
                 plt.plot(trace.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(400,900)
             plt.ylim(bottom=0)
             plt.xlabel('wavelength / nm')
@@ -364,7 +364,7 @@ def time_abs(dataset,time_list,plot=False):
             for i, time in enumerate(time_plt):
                 plt.plot(temp.loc[time,:],color=colors[i],label='{} s'.format(round(time)))
 
-            plt.legend()
+            plt.legend(frameon='True')
             plt.xlim(400,900)
             plt.ylim(bottom=0)
             plt.xlabel('wavelength / nm')
@@ -469,7 +469,7 @@ def plot_model(reaction):
     if hasattr(reaction, 'model'):
         with rc_context(fname=rc_fname):
             plt.plot(reaction.model["R"],color=OPT[0],label='Radical Cation')
-            plt.legend()
+            plt.legend(frameon='True')
 
             for time in reaction.turning_points:
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
@@ -500,7 +500,9 @@ def plot_rates(reaction):
         rates = reaction.rates
 
         with rc_context(fname=rc_fname):
-            plt.plot(rates)
+
+            for i, column in enumerate(rates):
+                plt.plot(rates[column],label='{}'.format(column))
 
             for time in reaction.turning_points:
                 plt.axvline(time,color='grey',linestyle='--',linewidth='1')
@@ -509,7 +511,7 @@ def plot_rates(reaction):
             plt.ylim(bottom=0)
             plt.xlabel('Time /s')
             plt.ylabel('Rate / $\mu$M$s^{-1}$')
-            plt.legend()
+            plt.legend(frameon='True')
             plt.show()
 
     else:
@@ -549,7 +551,7 @@ def compare_model(reaction):
             plt.ylim(0,max(y.values)+2)
             plt.xlabel('Time /s')
             plt.ylabel('Concentration / $\mu$M')
-            plt.legend()
+            plt.legend(frameon='True')
             plt.show()
 
     else:

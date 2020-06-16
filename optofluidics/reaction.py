@@ -172,7 +172,7 @@ class Reaction:
             # check to see if drift-corrected data exists
             if self.state=='drift_corrected':
                 plt.plot(self.conc_profile_d,color=OPT[1],label='data corrected')
-                plt.legend()
+                plt.legend(frameon='True')
             else:
                 pass
 
@@ -261,7 +261,7 @@ class Reaction:
                 fig = plt.figure(figsize=(8, 4))
                 plt.plot(self.conc_profile,label='data',color=OPT[0],linewidth=3)
                 plt.plot(self.conc_profile.iloc[indices_all],marker='o',ls='none',ms=8,mfc='none',mec=OPT[2],mew=2,label='turning points')
-                plt.legend()
+                plt.legend(frameon='True')
                 plt.xlim(0,max(self.dataset.times))
                 plt.ylim(0,max(self.conc_profile)*1.05)
                 plt.ylabel('Concentration / $\mu$M')
