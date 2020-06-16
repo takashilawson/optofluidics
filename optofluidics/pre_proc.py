@@ -4,7 +4,6 @@ import numpy as np
 import math as math
 import os
 import pandas as pd
-import pickle
 from time import perf_counter
 
 class Datafile:
@@ -307,22 +306,6 @@ class Dataset:
         else:
             return self.times[idx]
 
-    def save(self, file_name, file_path):
-
-        """Function to save Dataset instance
-
-    	Args:
-    		file_name represents the file name with file extension
-            file_path represents the file path
-
-        Returns:
-    		None
-
-    	"""
-
-        with open('{}\{}.temp'.format(file_path,file_name), 'wb') as f:
-            pickle.dump(self,f)
-
     def __repr__(self):
 
         """Function to output the characteristics of the Dataset instance
@@ -336,4 +319,3 @@ class Dataset:
 		"""
 
         return self.datafile.file_path
-        return self.exp_label

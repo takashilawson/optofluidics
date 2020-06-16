@@ -9,7 +9,6 @@ import matplotlib.cm as cm
 from matplotlib.pyplot import rc_context
 import os
 import pandas as pd
-import pickle
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks
 from scipy.interpolate import interp1d
@@ -525,7 +524,7 @@ class Reaction:
         residual = model_inter1pd-exp_data
         return np.array(residual.values)
 
-    def fit_model(self,params,meth):
+    def fit_model(self,params,meth,save_path):
 
         """Function to fit experimental data to the model
 
@@ -542,6 +541,8 @@ class Reaction:
                 K representing the equilibrium constant for complexation
                 end representing the total time for the model
                 }
+            method representing the lmfit algorithm to use (string)
+            save_path representing the file path to save the fit report to.
 
         Returns:
 			lmfit minimise object
@@ -551,26 +552,14 @@ class Reaction:
         out = minimize(self.residual, params, method=meth)
         t1_stop = perf_counter()
 
+        with open(os.path.join(save_path,'{}-fit-{}-report.txt'.format(self.dataset.exp_label,meth)), 'w') as fh:
+            fh.write(fit_report(out))
+        fh.close()
+
         print("Elapsed time for fitting:", t1_stop-t1_start,"\n")
         print(fit_report(out))
         print("\n The model attribute has been updated with these parameters. ")
         return out
-
-    def save(self, file_name, file_path):
-
-        """Function to save Reaction instance
-
-		Args:
-			file_name represents the file name
-            file_path represents the file path
-
-        Returns:
-			None
-
-		"""
-
-        with open('{}\{}.temp'.format(file_path,file_name), 'wb') as f:
-            pickle.dump(self,f)
 
     def __repr__(self):
 
@@ -584,5 +573,4 @@ class Reaction:
 
 		"""
 
-        return self.dataset.exp_label
-        return self.state
+        return str(self.dataset.exp_label)
