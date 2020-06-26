@@ -37,7 +37,7 @@ class Reaction:
         epsilon representing the absorption coefficient for Beer-Lambert Law
             calculations (float)
         model representing an initial model (pd DataFrame)
-        path_length representing the cm path length for Berr-Lambert Law
+        path_length representing the cm path length for Beer-Lambert Law
             calculations (float)
         rates representing the time-dependent rates (pd DataFrame)
         state representing the status of the data (string)
