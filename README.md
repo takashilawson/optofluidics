@@ -3,7 +3,9 @@ Optofluidics is a Python library for the analysis of spectroscopic data stored i
 
 The HDF5 must contain measurement groups containing a set of timelapses. Each timelapse contains a collection of timestamped spectral data.
 
-Each spectrum is expected to have a background spectrum and reference spectrum defined stored as an attribute.
+Each spectrum is expected to have a background spectrum stored as an attribute.
+
+Absorbance calculations also assume a reference spectrum stored as an attribute.
 
 Modelling functions assume a methyl viologen photoreduction process with carbon dots as the photosensitiser and EDTA as the sacrificial electron donor. Carbon dots are modelled with an error function to describe their delay/activation period. The bleaching of the photoreduced methyl viologen radical, and complexation of methyl viologen with EDTA, are both accounted for in the model.
 
@@ -27,11 +29,12 @@ pip install --index-url https://test.pypi.org/simple/ optofluidics
 ```
 
 ## Usage
-Optofluidics defines three object types: Datafiles, Datasets and Reactions.
+Optofluidics defines four object types: Datafiles, Datasets, Reactions and SV.
 
  - A Datafile is the HDF5 file that may contain multiple Datasets.
  - A Dataset is one timelapse containing multiple spectra at different times.
  - A Reaction is a Dataset that has been processed to give concentration profiles.
+ - A SV is a Dataset that has been processed to give fluorescent counts.
 
 ```python
 import optofluidics as of
