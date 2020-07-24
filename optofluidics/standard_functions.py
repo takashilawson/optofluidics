@@ -95,12 +95,14 @@ def plot_trace(dataset):
         plt.title('Referenced Spectral Plot \n {}'.format(dataset.exp_label))
         plt.show()
 
-def plot_abs(dataset):
+def plot_abs(dataset,absMIN,absMAX):
 
     """Function to plot absorbance at all times
 
 	Args:
 		dataset representing the Dataset object
+        absMIN representing the minimum absorbance to plot
+        absMAX representing the maximum absorbance to plot
 
 	Returns:
 		none
@@ -116,7 +118,7 @@ def plot_abs(dataset):
             plt.plot(temp[time], color = colors[i], linewidth = 0.5)
 
         plt.xlim(400,900)
-        plt.ylim(-0.5,2)
+        plt.ylim(absMIN,absMAX)
         plt.xlabel('wavelength / nm')
         plt.ylabel('absorbance')
         plt.title('Absorbance Plot \n {}'.format(dataset.exp_label))
@@ -208,13 +210,15 @@ def wav_trace(dataset,wavelength_list,plot=False):
 
     return trace.loc[:,wav_plt]
 
-def wav_abs(dataset,wavelength_list,plot=False):
+def wav_abs(dataset,wavelength_list,absMIN,absMAX,plot=False):
 
     """Function to return absorbance for specified wavelengths over time
 
 	Args:
 		dataset representing the Dataset object
         wavelength_list representing a list of wavelengths (list)
+        absMIN representing the minimum absorbance to plot
+        absMAX representing the maximum absorbance to plot
         plot representing a Boolean on whether to create a plot (Boolean)
 
 	Returns:
@@ -239,7 +243,7 @@ def wav_abs(dataset,wavelength_list,plot=False):
 
             plt.legend(frameon='True')
             plt.xlim(0,max(dataset.times))
-            plt.ylim(bottom=0)
+            plt.ylim(absMIN,absMAX)
             plt.xlabel('time / s')
             plt.ylabel('absorbance')
             plt.title('Absorbance Plot \n {}'.format(dataset.exp_label))
@@ -335,13 +339,15 @@ def time_trace(dataset,time_list,plot=False):
 
     return trace.loc[time_plt,:]
 
-def time_abs(dataset,time_list,plot=False):
+def time_abs(dataset,time_list,absMIN,absMAX,plot=False):
 
     """Function to return absorbance spectra at specified times
 
 	Args:
 		dataset representing the Dataset object
         time_list representing a list of times (list)
+        absMIN representing the minimum absorbance to plot
+        absMAX representing the maximum absorbance to plot
         plot representing a Boolean on whether to create a plot (Boolean)
 
 	Returns:
@@ -366,7 +372,7 @@ def time_abs(dataset,time_list,plot=False):
 
             plt.legend(frameon='True')
             plt.xlim(400,900)
-            plt.ylim(bottom=0)
+            plt.ylim(absMIN,absMAX)
             plt.xlabel('wavelength / nm')
             plt.ylabel('absorbance')
             plt.title('Absorbance Plot \n {}'.format(dataset.exp_label))
@@ -430,16 +436,16 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
 
     # time trace at specific wavelength
     with rc_context(fname=rc_fname):
-        x_plot.plot(wav_abs(dataset,wavs))
-        x_plot.set_ylim(0,absorbanceMAX)
+        x_plot.plot(wav_abs(dataset,wavs,absorbanceMIN,absorbanceMAX))
+        x_plot.set_ylim(absorbanceMIN,absorbanceMAX)
         x_plot.set_xlim(0,max(dataset.times))
         x_plot.set_xlabel('Time / s')
 
     # wavelength trace at specific time
     with rc_context(fname=rc_fname):
-        y_plot.plot((time_abs(dataset,times).transpose()),dataset.wavelengths)
+        y_plot.plot((time_abs(dataset,times,absorbanceMIN,absorbanceMAX).transpose()),dataset.wavelengths)
         y_plot.axvline(0,color='lightgrey',linewidth=1,linestyle='--')
-        y_plot.set_xlim(0,absorbanceMAX)
+        y_plot.set_xlim(absorbanceMIN,absorbanceMAX)
         y_plot.set_ylim(450,750)
         y_plot.set_ylabel('Wavelength / nm')
 

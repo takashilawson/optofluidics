@@ -124,7 +124,7 @@ class SV:
         else:
             self.abs = 1
 
-        self.ncounts = self.counts/self.abs
+        self.ncounts = self.counts*self.abs
         self.state = 'calculated'
 
         return self.ncounts
