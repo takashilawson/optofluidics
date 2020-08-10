@@ -279,7 +279,7 @@ class Reaction:
         self.turning_points = times_all
         return times_all
 
-    def update_turn_points(times_arr):
+    def update_turn_points(self,times_arr):
 
         """Function to update turning points array
 
