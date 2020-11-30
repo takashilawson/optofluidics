@@ -580,92 +580,92 @@ class Reaction:
         print("\n The model attribute has been updated with these parameters. ")
         return out
 
-        def update_model_range(self,range):
-            i1=self.nearest_value_idx(range[0],self.dataset.times)
-            i2=self.nearest_value_idx(range[1],self.dataset.times)
-            self.i1=i1
-            self.i2=i2
-            return(i1,i2)
+    def update_model_range(self,range):
+        i1=self.nearest_value_idx(range[0],self.dataset.times)
+        i2=self.nearest_value_idx(range[1],self.dataset.times)
+        self.i1=i1
+        self.i2=i2
+        return(i1,i2)
 
-        def residual_range(self,params):
+    def residual_range(self,params):
 
-            """Function to return residual to model
+        """Function to return residual to model
 
-    		Args:
-                range representing the fitting range (array)
-                params representing the model parameters consisting of
-                    {
-                    t_erf representing the delay time in Erf model
-                    kc representing the complexation rate constant
-                    kbr representing the product bleaching rate constant
-                    k representing the saturation rate constant in the Erf model
-                    kr representing the back-reaction rate constant
-                    o representing the standard deviation in the Erf model
-                    c0 representing the initial concentration of reactant
-                    K representing the equilibrium constant for complexation
-                    end representing the total time for the model
-                    }
-                complex_bool representing a Boolean on whether to account for
-                    complexation
+		Args:
+            range representing the fitting range (array)
+            params representing the model parameters consisting of
+                {
+                t_erf representing the delay time in Erf model
+                kc representing the complexation rate constant
+                kbr representing the product bleaching rate constant
+                k representing the saturation rate constant in the Erf model
+                kr representing the back-reaction rate constant
+                o representing the standard deviation in the Erf model
+                c0 representing the initial concentration of reactant
+                K representing the equilibrium constant for complexation
+                end representing the total time for the model
+                }
+            complex_bool representing a Boolean on whether to account for
+                complexation
 
-            Returns:
-    			pd Series representing the residuals
+        Returns:
+			pd Series representing the residuals
 
-    		"""
+		"""
 
-            model_all = self.create_model(params)
-            model_R = model_all["R"]
+        model_all = self.create_model(params)
+        model_R = model_all["R"]
 
-            f = interp1d(model_R.index.values, model_R.values)
-            model_inter1pd = f(self.dataset.times[self.i1:self.i2])
+        f = interp1d(model_R.index.values, model_R.values)
+        model_inter1pd = f(self.dataset.times[self.i1:self.i2])
 
-            # create interpolation function for model
-            if self.state == 'drift_corrected':
-                exp_data = self.conc_profile_d.iloc[self.i1:self.i2]
-            else:
-                exp_data = self.conc_profile.iloc[self.i1:self.i2]
+        # create interpolation function for model
+        if self.state == 'drift_corrected':
+            exp_data = self.conc_profile_d.iloc[self.i1:self.i2]
+        else:
+            exp_data = self.conc_profile.iloc[self.i1:self.i2]
 
-            residual = model_inter1pd-exp_data
-            return np.array(residual.values)
+        residual = model_inter1pd-exp_data
+        return np.array(residual.values)
 
-        def fit_model_range(self,params,meth,save_path):
+    def fit_model_range(self,params,meth,save_path):
 
-            """Function to fit experimental data to the model
+        """Function to fit experimental data to the model
 
-    		Args:
-                range representing the fitting range (array)
-                params representing the initial fitting parameters consisting of
-                    {
-                    t_erf representing the delay time in Erf model
-                    kc representing the complexation rate constant
-                    kbr representing the product bleaching rate constant
-                    k representing the saturation rate constant in the Erf model
-                    kr representing the back-reaction rate constant
-                    o representing the standard deviation in the Erf model
-                    c0 representing the initial concentration of reactant
-                    K representing the equilibrium constant for complexation
-                    end representing the total time for the model
-                    }
-                method representing the lmfit algorithm to use (string)
-                save_path representing the file path to save the fit report to.
+		Args:
+            range representing the fitting range (array)
+            params representing the initial fitting parameters consisting of
+                {
+                t_erf representing the delay time in Erf model
+                kc representing the complexation rate constant
+                kbr representing the product bleaching rate constant
+                k representing the saturation rate constant in the Erf model
+                kr representing the back-reaction rate constant
+                o representing the standard deviation in the Erf model
+                c0 representing the initial concentration of reactant
+                K representing the equilibrium constant for complexation
+                end representing the total time for the model
+                }
+            method representing the lmfit algorithm to use (string)
+            save_path representing the file path to save the fit report to.
 
-            Returns:
-    			lmfit minimise object
+        Returns:
+			lmfit minimise object
 
-    		"""
+		"""
 
-            t1_start = perf_counter()
-            out = minimize(self.residual_range, params, method=meth)
-            t1_stop = perf_counter()
+        t1_start = perf_counter()
+        out = minimize(self.residual_range, params, method=meth)
+        t1_stop = perf_counter()
 
-            with open(os.path.join(save_path,'{}-fit-{}-report.txt'.format(self.dataset.exp_label,meth)), 'w') as fh:
-                fh.write(fit_report(out))
-            fh.close()
+        with open(os.path.join(save_path,'{}-fit-{}-report.txt'.format(self.dataset.exp_label,meth)), 'w') as fh:
+            fh.write(fit_report(out))
+        fh.close()
 
-            print("Elapsed time for fitting:", t1_stop-t1_start,"\n")
-            print(fit_report(out))
-            print("\n The model attribute has been updated with these parameters. ")
-            return out
+        print("Elapsed time for fitting:", t1_stop-t1_start,"\n")
+        print(fit_report(out))
+        print("\n The model attribute has been updated with these parameters. ")
+        return out
 
     def __repr__(self):
 
