@@ -74,6 +74,25 @@ class Reaction:
         else:
             return value_arr[idx]
 
+    def nearest_value_idx(self,value,value_arr):
+
+        """Function to find the nearest value in a value array
+
+		Args:
+			value representing the value you wish to find (float)
+            value_array representing the array you wish to search through (array)
+
+		Returns:
+			float: nearest value to that specfied
+
+		"""
+
+        idx = np.searchsorted(value_arr, value, side="left")
+        if idx > 0 and (idx == len(value_arr) or math.fabs(value- value_arr[idx-1]) < math.fabs(value - value_arr[idx])):
+            return idx-1
+        else:
+            return idx
+
     def widen_range(self,value,value_arr,range):
 
         """Function to return the nearest values for the specified
@@ -560,6 +579,93 @@ class Reaction:
         print(fit_report(out))
         print("\n The model attribute has been updated with these parameters. ")
         return out
+
+        def update_model_range(self,range):
+            i1=self.nearest_value_idx(range[0],self.dataset.times)
+            i2=self.nearest_value_idx(range[1],self.dataset.times)
+            self.i1=i1
+            self.i2=i2
+            return(i1,i2)
+
+        def residual_range(self,params):
+
+            """Function to return residual to model
+
+    		Args:
+                range representing the fitting range (array)
+                params representing the model parameters consisting of
+                    {
+                    t_erf representing the delay time in Erf model
+                    kc representing the complexation rate constant
+                    kbr representing the product bleaching rate constant
+                    k representing the saturation rate constant in the Erf model
+                    kr representing the back-reaction rate constant
+                    o representing the standard deviation in the Erf model
+                    c0 representing the initial concentration of reactant
+                    K representing the equilibrium constant for complexation
+                    end representing the total time for the model
+                    }
+                complex_bool representing a Boolean on whether to account for
+                    complexation
+
+            Returns:
+    			pd Series representing the residuals
+
+    		"""
+
+            model_all = self.create_model(params)
+            model_R = model_all["R"]
+
+            f = interp1d(model_R.index.values, model_R.values)
+            model_inter1pd = f(self.dataset.times[self.i1:self.i2])
+
+            # create interpolation function for model
+            if self.state == 'drift_corrected':
+                exp_data = self.conc_profile_d.iloc[self.i1:self.i2]
+            else:
+                exp_data = self.conc_profile.iloc[self.i1:self.i2]
+
+            residual = model_inter1pd-exp_data
+            return np.array(residual.values)
+
+        def fit_model_range(self,params,meth,save_path):
+
+            """Function to fit experimental data to the model
+
+    		Args:
+                range representing the fitting range (array)
+                params representing the initial fitting parameters consisting of
+                    {
+                    t_erf representing the delay time in Erf model
+                    kc representing the complexation rate constant
+                    kbr representing the product bleaching rate constant
+                    k representing the saturation rate constant in the Erf model
+                    kr representing the back-reaction rate constant
+                    o representing the standard deviation in the Erf model
+                    c0 representing the initial concentration of reactant
+                    K representing the equilibrium constant for complexation
+                    end representing the total time for the model
+                    }
+                method representing the lmfit algorithm to use (string)
+                save_path representing the file path to save the fit report to.
+
+            Returns:
+    			lmfit minimise object
+
+    		"""
+
+            t1_start = perf_counter()
+            out = minimize(self.residual_range, params, method=meth)
+            t1_stop = perf_counter()
+
+            with open(os.path.join(save_path,'{}-fit-{}-report.txt'.format(self.dataset.exp_label,meth)), 'w') as fh:
+                fh.write(fit_report(out))
+            fh.close()
+
+            print("Elapsed time for fitting:", t1_stop-t1_start,"\n")
+            print(fit_report(out))
+            print("\n The model attribute has been updated with these parameters. ")
+            return out
 
     def __repr__(self):
 
