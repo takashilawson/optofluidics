@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import h5py
 import numpy as np
+import matplotlib.pyplot as plt
 import math as math
 import os
 import pandas as pd
@@ -89,6 +90,7 @@ class Dataset:
         timelapse_key representing the timelapse you wish to access (usually 0)
             (float)
         times representing the elapsed times of the spectra (array)
+        t_delay representing the delay time of activation (float)
         wavelengths representing the wavelengths of the spectra (array)
 
     """
@@ -305,6 +307,54 @@ class Dataset:
             return self.times[idx-1]
         else:
             return self.times[idx]
+
+    def calculate_delay(self, wav_start, wav_finish, thr_start, thr_finish):
+
+        """Function to calculate the delay time based on counts exceed a threshold
+            at a certain wavelength
+
+		Args:
+		      wav_start representing the excitation source (float)
+              wav_finish representing the species in question (float)
+              thr_start representing the threshold for excitation counts (float)
+              thr_finish representing the threshold d(counts) for the species in
+                question (float)
+
+		Returns:
+			Float: delay time
+
+		"""
+
+        w_s=self.find_nearest_wav(wav_start)
+        w_f=self.find_nearest_wav(wav_finish)
+        temp=self.pre_proc_data.loc[:,w_s]
+        t_start = self.times[(temp.values>thr_start).argmax()]
+        print(t_start)
+
+        temp2=self.pre_proc_data.loc[:,w_f]
+        dx=temp2.diff()
+        dx_clean=dx.ewm(span = 50).mean()
+        t_finish=self.times[np.min(np.where(dx_clean<thr_finish))]
+        print(t_finish)
+
+        plt.subplot(211)
+        plt.plot(temp,label='{}nm'.format(wav_start))
+        plt.axvline(t_finish,color='grey')
+        plt.axvline(t_start,color='grey')
+        plt.xlim(t_start-30,t_finish+30)
+        plt.legend()
+
+        plt.subplot(212)
+        plt.plot(temp2,label='{}nm'.format(wav_finish))
+        plt.axvline(t_finish,color='grey')
+        plt.axvline(t_start,color='grey')
+        plt.xlim(t_start-30,t_finish+30)
+        plt.legend()
+
+        plt.show()
+
+        self.t_delay=np.round(t_finish-t_start,2)
+        return np.round(t_finish-t_start,2)
 
     def __repr__(self):
 

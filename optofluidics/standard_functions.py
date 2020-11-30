@@ -423,7 +423,7 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
     # main axes
     with rc_context(fname=rc_fname):
         cb=main_ax.contourf(dataset.times, dataset.wavelengths, dataset.abs_data.transpose(), levels=levels, cmap=newcmp)
-        main_ax.set_ylim(450,750)
+        main_ax.set_ylim(450,900)
         main_ax.set_xlim(0,max(dataset.times))
 
         for time in times:
@@ -446,7 +446,7 @@ def colourplot(dataset,times,wavs,absorbanceMIN,absorbanceMAX):
         y_plot.plot((time_abs(dataset,times,absorbanceMIN,absorbanceMAX).transpose()),dataset.wavelengths)
         y_plot.axvline(0,color='lightgrey',linewidth=1,linestyle='--')
         y_plot.set_xlim(absorbanceMIN,absorbanceMAX)
-        y_plot.set_ylim(450,750)
+        y_plot.set_ylim(450,900)
         y_plot.set_ylabel('Wavelength / nm')
 
     # colour bar
